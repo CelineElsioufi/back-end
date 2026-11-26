@@ -91,6 +91,22 @@ async function startServer() {
         });
 
         // -------------------------------------------------------
+        // GET /teachers - return all teachers as JSON
+        // each teacher: { firstName, lastName, lessonIDs: [...] }
+        // -------------------------------------------------------
+        app.get("/teachers", async function (req, res, next) {
+            try {
+                const teachers = await db.collection("teachers")
+                    .find({})
+                    .sort({ lastName: 1, firstName: 1 })
+                    .toArray();
+                res.json(teachers);
+            } catch (err) {
+                next(err);
+            }
+        });
+
+        // -------------------------------------------------------
         // GET /search?q=... - search topic, location, price and space
         // (search is done here in the back-end, not in the browser)
         // -------------------------------------------------------
