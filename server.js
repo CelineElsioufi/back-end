@@ -184,6 +184,24 @@ async function startServer() {
                     return res.status(400).json({ error: "name, phone and lessonIDs are required" });
                 }
 
+                // every lesson id must be a valid ObjectId
+                const idsAreValid = order.lessonIDs.every(function (id) {
+                    return ObjectId.isValid(id);
+                });
+                if (!idsAreValid) {
+                    return res.status(400).json({ error: "lessonIDs must be valid lesson ids" });
+                }
+
+                // spaces holds one positive whole number per lesson id
+                const spacesAreValid = Array.isArray(order.spaces) &&
+                    order.spaces.length === order.lessonIDs.length &&
+                    order.spaces.every(function (n) {
+                        return Number.isInteger(n) && n > 0;
+                    });
+                if (!spacesAreValid) {
+                    return res.status(400).json({ error: "spaces must list one positive whole number per lesson" });
+                }
+
                 order.createdAt = new Date();
 
                 const result = await db.collection("orders").insertOne(order);
