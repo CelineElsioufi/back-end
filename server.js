@@ -107,6 +107,38 @@ async function startServer() {
         });
 
         // -------------------------------------------------------
+        // GET /teachers/:id/lessons - all the lessons taught by one teacher
+        // -------------------------------------------------------
+        app.get("/teachers/:id/lessons", async function (req, res, next) {
+            try {
+                if (!ObjectId.isValid(req.params.id)) {
+                    return res.status(400).json({ error: "Invalid teacher id" });
+                }
+
+                const teacher = await db.collection("teachers").findOne({
+                    _id: new ObjectId(req.params.id)
+                });
+
+                if (!teacher) {
+                    return res.status(404).json({ error: "Teacher not found" });
+                }
+
+                // lessonIDs are stored as strings, so convert them back to ObjectIds
+                const ids = teacher.lessonIDs
+                    .filter(function (id) { return ObjectId.isValid(id); })
+                    .map(function (id) { return new ObjectId(id); });
+
+                const lessons = await db.collection("lessons")
+                    .find({ _id: { $in: ids } })
+                    .toArray();
+
+                res.json(lessons);
+            } catch (err) {
+                next(err);
+            }
+        });
+
+        // -------------------------------------------------------
         // GET /search?q=... - search topic, location, price and space
         // (search is done here in the back-end, not in the browser)
         // -------------------------------------------------------
