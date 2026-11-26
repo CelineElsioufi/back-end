@@ -10,7 +10,8 @@
   "scripts": {
     "start": "node server.js",
     "dev": "node --env-file=.env server.js",
-    "seed": "node --env-file=.env seed.js"
+    "seed": "node --env-file=.env seed.js",
+    "seed:teachers": "node --env-file=.env seed-teachers.js"
   },
   "engines": {
     "node": ">=20.6"
