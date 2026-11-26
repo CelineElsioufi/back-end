@@ -91,6 +91,49 @@ async function startServer() {
         });
 
         // -------------------------------------------------------
+        // GET /enrolment/:lessonid - how many slots of a lesson have been purchased
+        // (adds up the "spaces" of every order that contains this lesson)
+        // -------------------------------------------------------
+        app.get("/enrolment/:lessonid", async function (req, res, next) {
+            try {
+                const lessonId = req.params.lessonid;
+
+                if (!ObjectId.isValid(lessonId)) {
+                    return res.status(400).json({ error: "Invalid lesson id" });
+                }
+
+                const lesson = await db.collection("lessons").findOne({
+                    _id: new ObjectId(lessonId)
+                });
+
+                if (!lesson) {
+                    return res.status(404).json({ error: "Lesson not found" });
+                }
+
+                // lessonIDs and spaces are parallel arrays: spaces[i] belongs to lessonIDs[i]
+                const result = await db.collection("orders").aggregate([
+                    { $match: { lessonIDs: lessonId } },
+                    {
+                        $project: {
+                            bought: {
+                                $arrayElemAt: ["$spaces", { $indexOfArray: ["$lessonIDs", lessonId] }]
+                            }
+                        }
+                    },
+                    { $group: { _id: null, total: { $sum: "$bought" } } }
+                ]).toArray();
+
+                res.json({
+                    lessonId: lessonId,
+                    topic: lesson.topic,
+                    enrolment: result.length > 0 ? result[0].total : 0
+                });
+            } catch (err) {
+                next(err);
+            }
+        });
+
+        // -------------------------------------------------------
         // GET /teachers - return all teachers as JSON
         // each teacher: { firstName, lastName, lessonIDs: [...] }
         // -------------------------------------------------------

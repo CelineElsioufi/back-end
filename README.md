@@ -15,6 +15,7 @@ Live: https://m00974878-after-school.onrender.com
 |---|---|---|
 | GET | `/lessons` | all lessons as JSON |
 | GET | `/search?q=text` | search topic, location, price and space |
+| GET | `/enrolment/:lessonid` | number of slots already purchased for a lesson |
 | GET | `/teachers` | all teachers (first name, last name, lesson ids) |
 | GET | `/teachers/:id/lessons` | the lessons taught by one teacher |
 | POST | `/orders` | save an order `{ name, phone, lessonIDs[], spaces[] }` |
