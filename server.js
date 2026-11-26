@@ -261,9 +261,22 @@ async function startServer() {
 
         // start the server only after MongoDB has connected
         const port = process.env.PORT || 3000;
-        app.listen(port, function () {
+        const server = app.listen(port, function () {
             console.log("Express.js server running on port " + port);
         });
+
+        // when the process is told to stop (Ctrl+C locally, or a Render redeploy),
+        // stop accepting requests and close the MongoDB connection cleanly
+        function shutDown(signal) {
+            console.log(signal + " received, shutting down");
+            server.close(function () {
+                client.close().then(function () {
+                    process.exit(0);
+                });
+            });
+        }
+        process.on("SIGINT", function () { shutDown("SIGINT"); });
+        process.on("SIGTERM", function () { shutDown("SIGTERM"); });
     } catch (err) {
         console.error("MongoDB connection failed:", err);
         process.exit(1);
