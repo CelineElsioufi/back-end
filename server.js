@@ -228,6 +228,12 @@ async function startServer() {
                     return res.status(400).json({ error: "Nothing to update" });
                 }
 
+                // spaces can be set to any whole number from 0 upwards
+                if ("space" in changes &&
+                    (!Number.isInteger(changes.space) || changes.space < 0)) {
+                    return res.status(400).json({ error: "space must be a whole number, 0 or more" });
+                }
+
                 const result = await db.collection("lessons").updateOne(
                     { _id: new ObjectId(req.params.id) },
                     { $set: changes }
